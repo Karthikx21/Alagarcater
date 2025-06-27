@@ -1,0 +1,251 @@
+/**
+ * Embedded Tamil Fonts for Complete Offline Support
+ * Uses system fonts and web-safe fallbacks for Tamil text rendering
+ */
+
+/* Primary Tamil font stack using system fonts */
+@font-face {
+  font-family: 'Tamil Primary';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Noto Sans Tamil'), 
+       local('NotoSansTamil-Regular'),
+       local('Tamil Sangam MN'), 
+       local('TamilSangamMN'),
+       local('Tamil MN'), 
+       local('TamilMN-Regular'),
+       local('Nirmala UI'),
+       local('Segoe UI'),
+       local('Latha'),
+       local('Vijaya');
+  unicode-range: U+0B80-0BFF, U+200C-200D, U+25CC, U+0964-0965;
+}
+
+@font-face {
+  font-family: 'Tamil Primary';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Noto Sans Tamil Bold'), 
+       local('NotoSansTamil-Bold'),
+       local('Tamil Sangam MN Bold'), 
+       local('TamilSangamMN-Bold'),
+       local('Tamil MN Bold'), 
+       local('TamilMN-Bold'),
+       local('Nirmala UI Bold'),
+       local('Segoe UI Bold'),
+       local('Latha Bold'),
+       local('Vijaya Bold');
+  unicode-range: U+0B80-0BFF, U+200C-200D, U+25CC, U+0964-0965;
+}
+
+/* Secondary Tamil font for fallback */
+@font-face {
+  font-family: 'Tamil Secondary';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Latha'), 
+       local('Vijaya'),
+       local('Shruti'),
+       local('Tunga'),
+       local('Raavi'),
+       local('Mangal'),
+       local('Aparajita');
+  unicode-range: U+0B80-0BFF, U+200C-200D, U+25CC;
+}
+
+/* Comprehensive Tamil font stack */
+.tamil-text {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', 'Nirmala UI', 'Segoe UI', 'Arial Unicode MS', sans-serif !important;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tamil text in different contexts */
+.tamil-text-small {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', sans-serif !important;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.tamil-text-large {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', sans-serif !important;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.tamil-text-bold {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', sans-serif !important;
+  font-weight: 700;
+}
+
+/* Language-specific styling */
+[lang="ta"], .tamil, .ta {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', 'Nirmala UI', 'Segoe UI', sans-serif !important;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  direction: ltr;
+  unicode-bidi: normal;
+}
+
+/* Input fields with Tamil support */
+input[lang="ta"], textarea[lang="ta"], .tamil-input {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', sans-serif !important;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Table cells with Tamil text */
+td.tamil-text, th.tamil-text {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', sans-serif !important;
+  vertical-align: middle;
+}
+
+/* Button text in Tamil */
+button .tamil-text, .btn .tamil-text {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', sans-serif !important;
+  font-weight: 500;
+}
+
+/* Print-specific Tamil styling */
+@media print {
+  .tamil-text, [lang="ta"], .tamil, .ta {
+    font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', 'Latha', 'Vijaya', serif !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: #000 !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  .tamil-text-invoice {
+    font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', serif !important;
+    font-size: 11pt;
+    line-height: 1.3;
+  }
+  
+  .tamil-text-header {
+    font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', serif !important;
+    font-size: 14pt;
+    font-weight: bold;
+    line-height: 1.2;
+  }
+}
+
+/* Web browser optimizations */
+@media screen and (-webkit-min-device-pixel-ratio: 1) {
+  .tamil-text {
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+}
+
+/* High DPI display optimizations */
+@media screen and (min-resolution: 192dpi) {
+  .tamil-text {
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Dark mode Tamil text */
+@media (prefers-color-scheme: dark) {
+  .tamil-text {
+    color: #f1f5f9;
+  }
+}
+
+/* Tamil text selection styling */
+.tamil-text::selection {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Ensure Tamil numerals display correctly */
+.tamil-numerals {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', monospace !important;
+  font-variant-numeric: normal;
+}
+
+/* Tamil punctuation and symbols */
+.tamil-punctuation {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', sans-serif !important;
+}
+
+/* Responsive Tamil text sizing */
+@media (max-width: 768px) {
+  .tamil-text {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  
+  .tamil-text-large {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tamil-text {
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+}
+
+/* Tamil text in tooltips and modals */
+.tooltip .tamil-text, .modal .tamil-text {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', sans-serif !important;
+  font-size: 0.875rem;
+}
+
+/* Tamil text in notifications */
+.notification .tamil-text, .toast .tamil-text {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', sans-serif !important;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Ensure proper spacing for Tamil characters */
+.tamil-text {
+  letter-spacing: 0.01em;
+  word-spacing: 0.05em;
+}
+
+/* Tamil text in form labels */
+label .tamil-text, .form-label .tamil-text {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', sans-serif !important;
+  font-weight: 500;
+}
+
+/* Tamil text in error messages */
+.error .tamil-text, .alert .tamil-text {
+  font-family: 'Tamil Primary', 'Tamil Secondary', 'Noto Sans Tamil', 'Tamil Sangam MN', 'Tamil MN', sans-serif !important;
+  font-size: 0.875rem;
+}
+
+/* Ensure Tamil text is always visible */
+.tamil-text {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Tamil text in loading states */
+.loading .tamil-text {
+  opacity: 0.7;
+}
+
+/* Tamil text alignment */
+.tamil-text-center {
+  text-align: center;
+}
+
+.tamil-text-right {
+  text-align: right;
+}
+
+.tamil-text-left {
+  text-align: left;
+}

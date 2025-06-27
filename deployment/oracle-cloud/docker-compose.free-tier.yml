@@ -1,0 +1,102 @@
+# Optimized Docker Compose for Oracle Always Free Tier
+# Single VM deployment with memory constraints
+
+version: '3.8'
+
+services:
+  # Main Application (optimized for 1GB RAM)
+  app:
+    build: .
+    container_name: algarcatering-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=400  # Limit to 400MB
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/algarcatering?connection_limit=3
+      - JWT_SECRET=${JWT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - LOG_LEVEL=warn
+      - MEMORY_MONITOR_INTERVAL=60000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 512m        # Limit container to 512MB
+    memswap_limit: 512m    # No swap usage
+    cpus: '0.5'           # Limit to half OCPU
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # PostgreSQL Database (optimized for limited resources)
+  postgres:
+    image: postgres:16-alpine
+    container_name: algarcatering-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: algarcatering
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-optimization.conf:/etc/postgresql/postgresql.conf
+    command: >
+      postgres
+      -c shared_buffers=64MB
+      -c effective_cache_size=256MB
+      -c maintenance_work_mem=32MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=4MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=2MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+      -c max_connections=20
+    mem_limit: 400m        # Limit PostgreSQL to 400MB
+    memswap_limit: 400m
+    cpus: '0.3'           # Limit CPU usage
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Redis (optional, for session storage - very lightweight)
+  redis:
+    image: redis:7-alpine
+    container_name: algarcatering-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --maxmemory 50mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+    mem_limit: 64m         # Very limited memory for Redis
+    memswap_limit: 64m
+    cpus: '0.1'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+
+# Resource monitoring and limits
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# Apply logging to all services
+logging: *default-logging

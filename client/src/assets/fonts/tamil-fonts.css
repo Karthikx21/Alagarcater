@@ -1,0 +1,93 @@
+/* Tamil Font Definitions for Offline Support */
+
+/* System Tamil fonts - Primary approach for enterprise reliability */
+@font-face {
+  font-family: 'Tamil System';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Noto Sans Tamil'), 
+       local('NotoSansTamil-Regular'),
+       local('Tamil Sangam MN'),
+       local('Tamil MN'),
+       local('Latha'),
+       local('Nirmala UI'),
+       local('Segoe UI');
+  unicode-range: U+0B80-0BFF, U+200C-200D, U+25CC;
+}
+
+@font-face {
+  font-family: 'Tamil System';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Noto Sans Tamil Bold'), 
+       local('NotoSansTamil-Bold'),
+       local('Tamil Sangam MN Bold'),
+       local('Tamil MN Bold'),
+       local('Latha Bold'),
+       local('Nirmala UI Bold'),
+       local('Segoe UI Bold');
+  unicode-range: U+0B80-0BFF, U+200C-200D, U+25CC;
+}
+
+/* Offline-only Tamil fonts - No external dependencies */
+@font-face {
+  font-family: 'Tamil Offline';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Noto Sans Tamil'), 
+       local('NotoSansTamil-Regular'),
+       local('Tamil Sangam MN'),
+       local('Tamil MN'),
+       local('Latha'),
+       local('Nirmala UI');
+  unicode-range: U+0B80-0BFF, U+200C-200D, U+25CC;
+}
+
+/* Tamil font stack for consistent rendering - Completely offline */
+.tamil-text {
+  font-family: 'Tamil System', 'Tamil Offline', 'Noto Sans Tamil', 'Latha', 'Tamil Sangam MN', 'Tamil MN', 'Nirmala UI', 'Segoe UI', sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure Tamil text displays correctly in all contexts */
+[lang="ta"], .tamil {
+  font-family: 'Tamil System', 'Tamil Offline', 'Noto Sans Tamil', 'Latha', 'Tamil Sangam MN', 'Tamil MN', 'Nirmala UI', 'Segoe UI', sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Enhanced Tamil text for better readability */
+.tamil-enhanced {
+  font-family: 'Tamil System', 'Tamil Offline', 'Noto Sans Tamil', 'Latha', 'Tamil Sangam MN', 'Tamil MN', 'Nirmala UI', 'Segoe UI', sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+/* Print-specific Tamil font styling */
+@media print {
+  .tamil-text, [lang="ta"], .tamil, .tamil-enhanced {
+    font-family: 'Tamil System', 'Tamil Offline', 'Noto Sans Tamil', 'Latha', 'Tamil Sangam MN', 'Tamil MN', serif !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: #000 !important;
+  }
+}
+
+/* Electron-specific optimizations */
+@media screen and (-webkit-min-device-pixel-ratio: 1) {
+  .tamil-text, [lang="ta"], .tamil, .tamil-enhanced {
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+}

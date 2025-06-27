@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "MenuItem" ALTER COLUMN "category" DROP DEFAULT,
+ALTER COLUMN "type" DROP DEFAULT;
