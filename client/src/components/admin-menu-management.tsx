@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +71,7 @@ const TYPES = [
 ];
 
 export default function AdminMenuManagement() {
+  const { t } = useTranslation();
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -110,18 +112,7 @@ export default function AdminMenuManagement() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/menu"] });
       setShowAddModal(false);
-      // Reset form state after successful creation
-      setNewItem({ 
-        name: "", 
-        tamilName: "", 
-        category: "", 
-        subcategory: "", 
-        type: "veg", 
-        price: 0, 
-        description: "", 
-        customizationOptions: [],
-        isActive: true
-      });
+      resetFormState();
     },
   });
 
@@ -139,18 +130,7 @@ export default function AdminMenuManagement() {
       queryClient.invalidateQueries({ queryKey: ["/api/menu"] });
       setEditingItem(null);
       setShowAddModal(false);
-      // Reset form state after successful update
-      setNewItem({ 
-        name: "", 
-        tamilName: "", 
-        category: "", 
-        subcategory: "", 
-        type: "veg", 
-        price: 0, 
-        description: "", 
-        customizationOptions: [],
-        isActive: true
-      });
+      resetFormState();
     },
   });
 
@@ -214,17 +194,7 @@ export default function AdminMenuManagement() {
         await createMutation.mutateAsync(newItem);
       }
       setShowAddModal(false);
-      setNewItem({ 
-        name: "", 
-        tamilName: "", 
-        category: "", 
-        subcategory: "", 
-        type: "veg", 
-        price: 0, 
-        description: "", 
-        customizationOptions: [],
-        isActive: true
-      });
+      resetFormState();
     } catch (error) {
       console.error("Error submitting menu item:", error);
       // Error handling would be improved with proper logging service
@@ -252,11 +222,38 @@ export default function AdminMenuManagement() {
     return <div>Loading...</div>;
   }
 
-  const filteredItems = menuItems.filter(item => {
+  // Filter and prepare menu items for display
+  const filteredMenuItems = menuItems.filter(item => {
     const matchesCategory = filterCategory === "all" || item.category === filterCategory;
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || item.tamilName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (item.tamilName && item.tamilName.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesCategory && matchesSearch;
-  });
+  }).map(item => ({
+    ...item,
+    name: item.name || "(No Name)",
+    tamilName: item.tamilName && item.tamilName.trim() !== "" ? item.tamilName : translateToTamil(item.name).tamil
+  }));
+
+  // Helper function for translation with fallback
+  const getTranslationWithFallback = (key: string, fallback: string) => {
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+
+  // Form reset helper
+  const resetFormState = () => {
+    setNewItem({ 
+      name: "", 
+      tamilName: "", 
+      category: "", 
+      subcategory: "", 
+      type: "veg", 
+      price: 0, 
+      description: "", 
+      customizationOptions: [],
+      isActive: true
+    });
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto animate-in">
@@ -267,8 +264,8 @@ export default function AdminMenuManagement() {
               <span className="text-white font-bold text-lg">5</span>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-foreground text-shadow-sm">Menu Management</h2>
-              <h3 className="text-lg text-secondary font-tamil mt-1">மெனு மேலாண்மை</h3>
+              <h2 className="text-3xl font-bold text-foreground text-shadow-sm">{t('adminMenu.title')}</h2>
+              <h3 className="text-lg text-secondary font-tamil mt-1">{t('adminMenu.subtitle')}</h3>
             </div>
           </div>
 
@@ -279,7 +276,7 @@ export default function AdminMenuManagement() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input 
-                    placeholder="Search menu items..." 
+                    placeholder={getTranslationWithFallback('adminMenu.searchPlaceholder', 'Search menu items...')} 
                     className="pl-10 w-full sm:w-[280px] border-primary/20 focus-visible:ring-primary/30 bg-white/80 backdrop-blur-sm h-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -290,10 +287,10 @@ export default function AdminMenuManagement() {
                   onValueChange={setFilterCategory}
                 >
                   <SelectTrigger className="w-full sm:w-[200px] border-primary/20 bg-white/80 backdrop-blur-sm h-10">
-                    <SelectValue placeholder="Filter by category" />
+                    <SelectValue placeholder={getTranslationWithFallback('adminMenu.filterByCategory', 'All Categories')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All categories</SelectItem>
+                    <SelectItem value="all">{getTranslationWithFallback('adminMenu.allCategories', 'All Categories')}</SelectItem>
                     {CATEGORIES.map((category) => (
                       <SelectItem key={category.value} value={category.value}>{category.label}</SelectItem>
                     ))}
@@ -301,7 +298,7 @@ export default function AdminMenuManagement() {
                 </Select>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <span className="hidden sm:inline mr-1">Total:</span> 
-                  <Badge variant="outline" className="text-xs">{filteredItems.length} items</Badge>
+                  <Badge variant="outline" className="text-xs">{filteredMenuItems.length} items</Badge>
                 </div>
               </div>
               
@@ -309,24 +306,13 @@ export default function AdminMenuManagement() {
                 <Button 
                   onClick={() => {
                     setEditingItem(null);
-                    // Reset the form state when adding a new item
-                    setNewItem({ 
-                      name: "", 
-                      tamilName: "", 
-                      category: "", 
-                      subcategory: "", 
-                      type: "veg", 
-                      price: 0, 
-                      description: "", 
-                      customizationOptions: [],
-                      isActive: true
-                    });
+                    resetFormState();
                     setShowAddModal(true);
                   }}
                   className="bg-primary hover:bg-primary/90 text-white px-4 py-2 h-10 rounded-md transition-colors duration-200 flex items-center gap-2 font-medium whitespace-nowrap"
                 >
                   <Plus className="h-4 w-4" />
-                  Add New Item
+                  {getTranslationWithFallback('adminMenu.addNewItem', 'Add New Item')}
                 </Button>
               </div>
             </div>
@@ -337,23 +323,23 @@ export default function AdminMenuManagement() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-primary/5 border-b border-primary/10">
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">Name</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">Tamil Name</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">Category</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">Type</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">Price</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">Status</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-primary-dark">Actions</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">{getTranslationWithFallback('adminMenu.name', 'Name')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">{getTranslationWithFallback('adminMenu.tamilName', 'Tamil Name')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">{getTranslationWithFallback('adminMenu.category', 'Category')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">{getTranslationWithFallback('adminMenu.type', 'Type')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">{getTranslationWithFallback('adminMenu.price', 'Price')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-primary-dark">{getTranslationWithFallback('adminMenu.status', 'Status')}</th>
+                      <th className="px-4 py-3 text-center text-sm font-semibold text-primary-dark">{getTranslationWithFallback('adminMenu.actions', 'Actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-primary/5">
-                    {filteredItems.length === 0 ? (
+                    {filteredMenuItems.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                           {isLoading ? (
                             <div className="flex justify-center items-center">
                               <Loader2 className="h-6 w-6 animate-spin mr-2 text-primary" />
-                              Loading menu items...
+                              {t('adminMenu.loadingItems')}
                             </div>
                           ) : (
                             <div className="flex flex-col items-center py-8">
@@ -379,7 +365,7 @@ export default function AdminMenuManagement() {
                         </td>
                       </tr>
                     ) : (
-                      filteredItems.map((item) => (
+                      filteredMenuItems.map((item) => (
                         <tr key={item.id} className="hover:bg-primary/5 transition-colors">
                           <td className="px-4 py-3 font-medium">{item.name}</td>
                           <td className="px-4 py-3 font-tamil">{item.tamilName}</td>
@@ -388,13 +374,13 @@ export default function AdminMenuManagement() {
                           </td>
                           <td className="px-4 py-3">
                             <Badge variant={item.type === 'veg' ? 'secondary' : 'destructive'} className="capitalize">
-                              {item.type}
+                              {item.type === 'veg' ? getTranslationWithFallback('adminMenu.veg', 'Veg') : getTranslationWithFallback('adminMenu.nonVeg', 'Non-Veg')}
                             </Badge>
                           </td>
                           <td className="px-4 py-3 font-medium">{formatCurrency(item.price)}</td>
                           <td className="px-4 py-3">
                             <Badge variant={item.isActive ? "success" : "outline"} className="capitalize">
-                              {item.isActive ? "Active" : "Inactive"}
+                              {item.isActive ? getTranslationWithFallback('adminMenu.active', 'Active') : getTranslationWithFallback('adminMenu.inactive', 'Inactive')}
                             </Badge>
                           </td>
                           <td className="px-4 py-3">
@@ -406,7 +392,7 @@ export default function AdminMenuManagement() {
                                 className="h-8 px-3 flex items-center text-primary hover:text-primary-dark hover:bg-primary-light/20"
                               >
                                 <Pencil className="h-3.5 w-3.5 mr-1" />
-                                Edit
+                                {getTranslationWithFallback('adminMenu.edit', 'Edit')}
                               </Button>
                               <Button 
                                 variant="outline" 
@@ -418,7 +404,7 @@ export default function AdminMenuManagement() {
                                 className="h-8 px-3 flex items-center text-destructive hover:text-destructive-foreground hover:bg-destructive/90"
                               >
                                 <Trash2 className="h-3.5 w-3.5 mr-1" />
-                                Delete
+                                {getTranslationWithFallback('adminMenu.delete', 'Delete')}
                               </Button>
                               <Button
                                 variant="outline"
@@ -426,7 +412,7 @@ export default function AdminMenuManagement() {
                                 onClick={() => toggleAvailabilityMutation.mutate({ id: item.id, isActive: !item.isActive })}
                                 className={`h-8 px-3 flex items-center ${item.isActive ? 'text-amber-600 hover:text-amber-700' : 'text-emerald-600 hover:text-emerald-700'}`}
                               >
-                                {item.isActive ? 'Disable' : 'Enable'}
+                                {item.isActive ? getTranslationWithFallback('adminMenu.disable', 'Disable') : getTranslationWithFallback('adminMenu.enable', 'Enable')}
                               </Button>
                             </div>
                           </td>
@@ -447,19 +433,8 @@ export default function AdminMenuManagement() {
                 // Close modal when clicking outside
                 if (e.target === e.currentTarget) {
                   setShowAddModal(false);
-                  // Reset form state when closing the modal
                   if (!editingItem) {
-                    setNewItem({ 
-                      name: "", 
-                      tamilName: "", 
-                      category: "", 
-                      subcategory: "", 
-                      type: "veg", 
-                      price: 0, 
-                      description: "", 
-                      customizationOptions: [],
-                      isActive: true
-                    });
+                    resetFormState();
                   }
                 }
               }}
@@ -479,19 +454,8 @@ export default function AdminMenuManagement() {
                     size="sm" 
                     onClick={() => {
                       setShowAddModal(false);
-                      // Reset form state when closing the modal
                       if (!editingItem) {
-                        setNewItem({ 
-                          name: "", 
-                          tamilName: "", 
-                          category: "", 
-                          subcategory: "", 
-                          type: "veg", 
-                          price: 0, 
-                          description: "", 
-                          customizationOptions: [],
-                          isActive: true
-                        });
+                        resetFormState();
                       }
                     }} 
                     className="h-10 w-10 p-0 hover:bg-primary/10"
@@ -728,7 +692,7 @@ export default function AdminMenuManagement() {
                     <div className="mt-4 p-3 bg-muted rounded-md">
                       <p className="text-sm font-medium">Item to delete:</p>
                       <p className="text-base font-semibold mt-1">
-                        {filteredItems.find(item => item.id === itemToDelete)?.name}
+                        {filteredMenuItems.find(item => item.id === itemToDelete)?.name}
                       </p>
                     </div>
                   )}

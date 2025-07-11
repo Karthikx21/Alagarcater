@@ -1,18 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogFooter,
-  DialogTrigger 
+  DialogFooter
 } from "@/components/ui/dialog";
 import { 
   Select, 
@@ -29,13 +28,12 @@ import {
   Moon, 
   Plus, 
   Minus, 
-  Edit, 
   Trash2, 
-  PlusCircle,
-  Loader2
+  PlusCircle
 } from "lucide-react";
 import { CustomerData, SelectedMenuItem } from "@/types";
 import { formatCurrency, calculateOrderSummary, cn } from "@/lib/utils";
+import { autoTranslateToTamil } from "@/lib/translationDictionary";
 
 interface MenuSelectionProps {
   customerData: CustomerData;
@@ -71,6 +69,14 @@ interface ItemQuantity {
 }
 
 export default function MenuSelection({ customerData, onBack, onNext, initialSelectedItems = [] }: MenuSelectionProps) {
+  const { t } = useTranslation();
+  
+  // Helper function for translation with fallback
+  const getTranslationWithFallback = (key: string, fallback: string) => {
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+
   // Initialize with IDs from initialSelectedItems if provided
   const [selectedItems, setSelectedItems] = useState<Set<number>>(
     new Set(initialSelectedItems.map(item => item.id))
@@ -81,24 +87,9 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
     initialSelectedItems.map(item => ({ id: item.id, quantity: item.quantity || Number(customerData.guestCount) || 1 }))
   );
   
-  // Store the full initialSelectedItems for reference
-  const [storedSelectedItems, setStoredSelectedItems] = useState<SelectedMenuItem[]>(initialSelectedItems);
-
   // Custom items state
   const [customItems, setCustomItems] = useState<SelectedMenuItem[]>([]);
   
-  // Add Menu Item modal state and form state
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newItem, setNewItem] = useState({
-    name: '',
-    tamilName: '',
-    category: 'breakfast',
-    type: 'veg',
-    price: '',
-    description: ''
-  });
-
   // Add Custom Item modal state and form
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
   const [customItem, setCustomItem] = useState({
@@ -116,44 +107,6 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
-  // Add Menu Item handler
-  const handleAddMenuItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAdding(true);
-    try {
-      const response = await fetch('/api/menu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newItem.name,
-          tamilName: newItem.tamilName,
-          category: newItem.category,
-          type: newItem.type,
-          price: parseFloat(newItem.price),
-          description: newItem.description,
-          isActive: true
-        })
-      });
-      if (!response.ok) {
-        throw new Error('Failed to add menu item');
-      }
-      setShowAddModal(false);
-      setNewItem({ 
-        name: '', 
-        tamilName: '', 
-        category: 'breakfast', 
-        type: 'veg', 
-        price: '', 
-        description: '' 
-      });
-      if (typeof refetch === 'function') refetch();
-    } catch (error) {
-      alert('Error adding menu item: ' + (error as Error).message);
-    } finally {
-      setIsAdding(false);
-    }
-  };
-  
   // Add Custom Item handler
   const handleAddCustomItem = () => {
     // Generate a unique negative ID for custom items (to avoid conflicts with DB items)
@@ -165,7 +118,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
     const newCustomItem: SelectedMenuItem = {
       id: customId,
       name: customItem.name,
-      tamilName: customItem.tamilName || customItem.name,
+      tamilName: customItem.tamilName || autoTranslateToTamil(customItem.name),
       category: customItem.category,
       subcategory: customItem.subcategory || undefined,
       type: customItem.type,
@@ -192,9 +145,15 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
     setShowCustomItemModal(false);
   };
 
-  const { data: menuItems = [], isLoading, refetch } = useQuery<MenuItem[]>({
+  // After fetching menuItems, ensure tamilName is filled using dictionary if missing
+  const { data: rawMenuItems = [], isLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
+  // Map menuItems to ensure tamilName is always filled
+  const menuItems = rawMenuItems.map(item => ({
+    ...item,
+    tamilName: item.tamilName && item.tamilName.trim() !== "" ? item.tamilName : autoTranslateToTamil(item.name)
+  }));
 
   const handleItemToggle = (itemId: number) => {
     const newSelected = new Set(selectedItems);
@@ -318,7 +277,17 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
     onNext(allSelectedItems);
   };
 
-  const groupedItems = menuItems.reduce((acc, item) => {
+  // Filtered menu items
+  const filteredMenuItems = menuItems.filter(item => {
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.tamilName && item.tamilName.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = categoryFilter ? item.category === categoryFilter : true;
+    const matchesType = typeFilter ? item.type === typeFilter : true;
+    return matchesSearch && matchesCategory && matchesType;
+  });
+
+  const groupedItems = filteredMenuItems.reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = {};
     }
@@ -395,16 +364,6 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
     return subcategory;
   };
 
-  // Filtered menu items
-  const filteredMenuItems = menuItems.filter(item => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.tamilName && item.tamilName.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = categoryFilter ? item.category === categoryFilter : true;
-    const matchesType = typeFilter ? item.type === typeFilter : true;
-    return matchesSearch && matchesCategory && matchesType;
-  });
-
   const totals = calculateTotals();
 
   if (isLoading) {
@@ -440,7 +399,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                 <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="">{getTranslationWithFallback('menuSelection.allCategories', 'All Categories')}</SelectItem>
                 <SelectItem value="breakfast">Breakfast</SelectItem>
                 <SelectItem value="lunch">Lunch</SelectItem>
                 <SelectItem value="dinner">Dinner</SelectItem>
@@ -451,7 +410,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="">{getTranslationWithFallback('menuSelection.allTypes', 'All Types')}</SelectItem>
                 <SelectItem value="veg">Vegetarian</SelectItem>
                 <SelectItem value="non-veg">Non-Vegetarian</SelectItem>
               </SelectContent>
@@ -464,7 +423,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                 <span className="text-white font-bold text-xl">2</span>
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-foreground">Menu Selection</h2>
+                <h2 className="text-3xl font-bold text-foreground">{getTranslationWithFallback('menuSelection.title', 'Menu Selection')}</h2>
                 <h3 className="text-lg text-muted-foreground font-tamil mt-1">மெனு தேர்வு</h3>
               </div>
             </div>
@@ -476,7 +435,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                 onClick={() => setShowCustomItemModal(true)}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Custom Item
+{getTranslationWithFallback('menuSelection.addCustomItem', 'Add Custom Item')}
               </Button>
             </div>
           </div>
@@ -492,7 +451,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                       <PlusCircle className="h-6 w-6 text-primary" />
                     </div>
                     <h3 className="text-xl font-bold text-foreground">
-                      Custom Items
+{getTranslationWithFallback('menuSelection.customItems', 'Custom Items')}
                     </h3>
                   </div>
                   
@@ -768,13 +727,13 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
             <div className="md:w-1/4">
               <div className="sticky top-4 bg-card rounded-lg border-2 border-primary/30 p-5 shadow-card">
                 <h3 className="text-xl font-bold mb-4 pb-2 border-b-2 border-border text-primary">
-                  Order Summary <span className="text-sm font-tamil">ஆர்டர் சுருக்கம்</span>
+                  {getTranslationWithFallback('orderPreview.orderSummary', 'Order Summary')} <span className="text-sm font-tamil">ஆர்டர் சுருக்கம்</span>
                 </h3>
                 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground font-medium">
-                      Selected Items <span className="text-xs font-tamil">பொருட்கள்</span>:
+                      {getTranslationWithFallback('menuSelection.selectedItems', 'Selected Items')} <span className="text-xs font-tamil">பொருட்கள்</span>:
                     </span>
                     <span className="font-semibold text-foreground bg-accent/50 px-3 py-1 rounded-md">
                       {selectedItems.size}
@@ -782,7 +741,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground font-medium">
-                      Guest Count <span className="text-xs font-tamil">விருந்தினர்</span>:
+                      {getTranslationWithFallback('customerForm.guestCount', 'Guest Count')} <span className="text-xs font-tamil">விருந்தினர்</span>:
                     </span>
                     <span className="font-semibold text-foreground bg-accent/50 px-3 py-1 rounded-md">
                       {customerData.guestCount}
@@ -793,7 +752,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                       Subtotal <span className="text-xs font-tamil">கூட்டுத்தொகை</span>:
                     </span>
                     <span className="font-bold text-primary text-lg">
-                      {formatCurrency(calculateTotals().subtotal)}
+                      {formatCurrency(totals.subtotal)}
                     </span>
                   </div>
                 </div>

@@ -1,18 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogFooter,
-  DialogTrigger 
+  DialogFooter
 } from "@/components/ui/dialog";
 import { 
   Select, 
@@ -29,10 +28,8 @@ import {
   Moon, 
   Plus, 
   Minus, 
-  Edit, 
   Trash2, 
-  PlusCircle,
-  Loader2
+  PlusCircle
 } from "lucide-react";
 import { CustomerData, SelectedMenuItem } from "@/types";
 import { formatCurrency, calculateOrderSummary, cn } from "@/lib/utils";
@@ -71,6 +68,14 @@ interface ItemQuantity {
 }
 
 export default function MenuSelection({ customerData, onBack, onNext, initialSelectedItems = [] }: MenuSelectionProps) {
+  const { t } = useTranslation();
+  
+  // Helper function for translation with fallback
+  const getTranslationWithFallback = (key: string, fallback: string) => {
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
+  
   // Initialize with IDs from initialSelectedItems if provided
   const [selectedItems, setSelectedItems] = useState<Set<number>>(
     new Set(initialSelectedItems.map(item => item.id))
@@ -80,25 +85,10 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
   const [itemQuantities, setItemQuantities] = useState<ItemQuantity[]>(
     initialSelectedItems.map(item => ({ id: item.id, quantity: item.quantity || customerData.guestCount }))
   );
-  
-  // Store the full initialSelectedItems for reference
-  const [storedSelectedItems, setStoredSelectedItems] = useState<SelectedMenuItem[]>(initialSelectedItems);
 
   // Custom items state
   const [customItems, setCustomItems] = useState<SelectedMenuItem[]>([]);
   
-  // Add Menu Item modal state and form state
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newItem, setNewItem] = useState({
-    name: '',
-    tamilName: '',
-    category: 'breakfast',
-    type: 'veg',
-    price: '',
-    description: ''
-  });
-
   // Add Custom Item modal state and form
   const [showCustomItemModal, setShowCustomItemModal] = useState(false);
   const [customItem, setCustomItem] = useState({
@@ -109,44 +99,6 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
     type: 'veg'
   });
 
-  // Add Menu Item handler
-  const handleAddMenuItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAdding(true);
-    try {
-      const response = await fetch('/api/menu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newItem.name,
-          tamilName: newItem.tamilName,
-          category: newItem.category,
-          type: newItem.type,
-          price: parseFloat(newItem.price),
-          description: newItem.description,
-          isActive: true
-        })
-      });
-      if (!response.ok) {
-        throw new Error('Failed to add menu item');
-      }
-      setShowAddModal(false);
-      setNewItem({ 
-        name: '', 
-        tamilName: '', 
-        category: 'breakfast', 
-        type: 'veg', 
-        price: '', 
-        description: '' 
-      });
-      if (typeof refetch === 'function') refetch();
-    } catch (error) {
-      alert('Error adding menu item: ' + (error as Error).message);
-    } finally {
-      setIsAdding(false);
-    }
-  };
-  
   // Add Custom Item handler
   const handleAddCustomItem = () => {
     // Generate a unique negative ID for custom items (to avoid conflicts with DB items)
@@ -187,7 +139,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
   };
 
 
-  const { data: menuItems = [], isLoading, refetch } = useQuery<MenuItem[]>({
+  const { data: menuItems = [], isLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
 
@@ -390,8 +342,6 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
     return subcategory;
   };
 
-  const totals = calculateTotals();
-
   if (isLoading) {
     return (
       <Card className="w-full max-w-6xl mx-auto">
@@ -418,8 +368,8 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                 <span className="text-white font-bold text-xl">2</span>
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-foreground">Menu Selection</h2>
-                <h3 className="text-lg text-muted-foreground font-tamil mt-1">மெனு தேர்வு</h3>
+                <h2 className="text-3xl font-bold text-foreground">{t('menuSelection.title')}</h2>
+                <h3 className="text-lg text-muted-foreground font-tamil mt-1">{t('menuSelection.subtitle')}</h3>
               </div>
             </div>
             
@@ -430,7 +380,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                 onClick={() => setShowCustomItemModal(true)}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Custom Item
+                {t('menuSelection.addItem')}
               </Button>
             </div>
           </div>
@@ -706,13 +656,13 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
             <div className="md:w-1/4">
               <div className="sticky top-4 bg-card rounded-lg border-2 border-primary/30 p-5 shadow-card">
                 <h3 className="text-xl font-bold mb-4 pb-2 border-b-2 border-border text-primary">
-                  Order Summary <span className="text-sm font-tamil">ஆர்டர் சுருக்கம்</span>
+                  {getTranslationWithFallback('orderPreview.orderSummary', 'Order Summary')}
                 </h3>
                 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground font-medium">
-                      Selected Items <span className="text-xs font-tamil">பொருட்கள்</span>:
+                      {getTranslationWithFallback('menuSelection.selectedItems', 'Selected Items')}:
                     </span>
                     <span className="font-semibold text-foreground bg-accent/50 px-3 py-1 rounded-md">
                       {selectedItems.size}
@@ -720,7 +670,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground font-medium">
-                      Guest Count <span className="text-xs font-tamil">விருந்தினர்</span>:
+                      {getTranslationWithFallback('customerForm.guestCount', 'Guest Count')}:
                     </span>
                     <span className="font-semibold text-foreground bg-accent/50 px-3 py-1 rounded-md">
                       {customerData.guestCount}
@@ -728,7 +678,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t border-border">
                     <span className="text-foreground font-semibold">
-                      Subtotal <span className="text-xs font-tamil">கூட்டுத்தொகை</span>:
+                      {t('orderPreview.subtotal')}:
                     </span>
                     <span className="font-bold text-primary text-lg">
                       {formatCurrency(calculateTotals().subtotal)}
@@ -743,7 +693,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                     onClick={onBack}
                   >
                     <ArrowLeft className="mr-2 h-5 w-5" />
-                    Back <span className="text-xs font-tamil ml-1">பின்செல்</span>
+                    {t('menuSelection.backToCustomer')}
                   </Button>
                   <Button 
                     variant="default"
@@ -751,7 +701,7 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
                     onClick={handleProceed}
                     disabled={selectedItems.size === 0}
                   >
-                    Proceed <span className="text-xs font-tamil ml-1">தொடரவும்</span>
+                    {t('menuSelection.nextToPreview')}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </div>
@@ -765,56 +715,56 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
       <Dialog open={showCustomItemModal} onOpenChange={setShowCustomItemModal}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add Custom Item</DialogTitle>
+            <DialogTitle>{t('menuSelection.addItem')}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Name
+                {t('menuSelection.itemName')}
               </Label>
               <Input
                 id="name"
                 value={customItem.name}
                 onChange={(e) => setCustomItem({...customItem, name: e.target.value})}
                 className="col-span-3"
-                placeholder="Enter item name"
+                placeholder={t('menuSelection.itemNamePlaceholder')}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="tamilName" className="text-right">
-                Tamil Name
+                {t('menuSelection.tamilName')}
               </Label>
               <Input
                 id="tamilName"
                 value={customItem.tamilName}
                 onChange={(e) => setCustomItem({...customItem, tamilName: e.target.value})}
                 className="col-span-3 font-tamil"
-                placeholder="Enter Tamil name (optional)"
+                placeholder={t('menuSelection.tamilNamePlaceholder')}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="price" className="text-right">
-                Price
+                {t('menuSelection.pricePerPerson')}
               </Label>
               <Input
                 id="price"
                 value={customItem.price}
                 onChange={(e) => setCustomItem({...customItem, price: e.target.value})}
                 className="col-span-3"
-                placeholder="Enter price"
+                placeholder={t('menuSelection.pricePlaceholder')}
                 type="number"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="quantity" className="text-right">
-                Quantity
+                {t('menuSelection.quantity')}
               </Label>
               <div className="col-span-3 space-y-1">
                 <Input
                   id="quantity"
                   value={customItem.quantity}
                   onChange={(e) => setCustomItem({...customItem, quantity: e.target.value})}
-                  placeholder="Enter quantity"
+                  placeholder={t('menuSelection.quantityPlaceholder')}
                   type="number"
                   min="1"
                 />
@@ -825,28 +775,28 @@ export default function MenuSelection({ customerData, onBack, onNext, initialSel
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="type" className="text-right">
-                Type
+                {t('menuSelection.type')}
               </Label>
               <Select 
                 value={customItem.type} 
                 onValueChange={(value) => setCustomItem({...customItem, type: value})}
               >
                 <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={t('menuSelection.typeSelect')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="veg">Vegetarian</SelectItem>
-                  <SelectItem value="non-veg">Non-Vegetarian</SelectItem>
+                  <SelectItem value="veg">{t('menuCategories.vegetarian')}</SelectItem>
+                  <SelectItem value="non-veg">{t('menuCategories.nonVegetarian')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCustomItemModal(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleAddCustomItem} disabled={!customItem.name || !customItem.price}>
-              Add Item
+              {t('menuSelection.addItem')}
             </Button>
           </DialogFooter>
         </DialogContent>

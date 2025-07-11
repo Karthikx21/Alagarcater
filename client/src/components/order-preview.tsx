@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, PrinterCheck, Save, FileText, Loader2, List, FileBarChart, FileSpreadsheet, DollarSign } from "lucide-react";
@@ -18,8 +19,15 @@ interface OrderPreviewProps {
 }
 
 export default function OrderPreview({ customerData, selectedItems, onBack, onComplete }: OrderPreviewProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Helper function for translation with fallback
+  const getTranslationWithFallback = (key: string, fallback: string) => {
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
 
   /**
    * Calculate order summary with precise calculations
@@ -97,8 +105,7 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
           paymentStatus: "due",
           amountPaid: "0.00",
           amountDue: summary.total.toFixed(2),
-          orderId: orderId,
-          summary: summary,
+          // orderId and summary removed, backend will generate orderId
         };
         
         const orderResponse = await apiRequest("POST", "/api/orders", orderPayload);
@@ -205,8 +212,8 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
               <span className="text-white font-bold text-xl">3</span>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-foreground">Order Preview</h2>
-              <h3 className="text-lg text-muted-foreground font-tamil mt-1">ஆர்டர் முன்னோட்டம்</h3>
+              <h2 className="text-3xl font-bold text-foreground">{getTranslationWithFallback('orderPreview.title', 'Order Preview')}</h2>
+              <h3 className="text-lg text-muted-foreground font-tamil mt-1">{getTranslationWithFallback('orderPreview.subtitle', 'ஆர்டர் முன்னோட்டம்')}</h3>
             </div>
           </div>
 
@@ -216,30 +223,30 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
               {/* Customer Details Card */}
               <div className="bg-card rounded-lg border-2 border-border p-5 shadow-card">
                 <h3 className="text-lg font-bold mb-4 pb-2 border-b-2 border-border text-primary flex items-center">
-                  <span className="mr-2">👤</span> Customer Details
+                  <span className="mr-2">👤</span> {getTranslationWithFallback('customerForm.title', 'Customer Details')}
                 </h3>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Name</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('customerForm.customerName')}</p>
                     <p className="font-semibold text-foreground">{customerData.name}</p>
                     {customerData.tamilName && (
                       <p className="text-sm font-tamil text-muted-foreground mt-1">{customerData.tamilName}</p>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Mobile</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('customerForm.mobileNumber')}</p>
                     <p className="font-semibold text-foreground">{customerData.mobile}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Address</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('customerForm.address')}</p>
                     <p className="font-semibold text-foreground">{customerData.address}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Event Date</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('customerForm.eventDate')}</p>
                     <p className="font-semibold text-foreground">{formatDate(customerData.eventDate)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Guest Count</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t('customerForm.guestCount')}</p>
                     <p className="font-semibold text-foreground bg-accent/50 px-3 py-1 rounded-md inline-block">{customerData.guestCount}</p>
                   </div>
                 </div>
@@ -286,21 +293,21 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                     <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mb-4 text-amber-800 text-sm">
                       <p className="flex items-center">
                         <span className="mr-2">ℹ️</span>
-                        Save the order first to enable payment tracking
+                        {getTranslationWithFallback('orderPreview.saveOrderFirst', 'Please save the order first to enable payment options')}
                       </p>
                     </div>
                     
                     <div className="space-y-3 mt-4">
                       <div className="flex justify-between items-center border-t border-border pt-3">
-                        <span className="font-medium text-sm">Payment Status:</span>
-                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Due</span>
+                        <span className="font-medium text-sm">{getTranslationWithFallback('orderPreview.paymentStatus', 'Payment Status')}:</span>
+                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">{getTranslationWithFallback('paymentStatus.due', 'Due')}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-sm">Amount Paid:</span>
+                        <span className="font-medium text-sm">{getTranslationWithFallback('orderPreview.amountPaid', 'Amount Paid')}:</span>
                         <span className="font-semibold">{formatCurrency(0)}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="font-medium text-sm">Amount Due:</span>
+                        <span className="font-medium text-sm">{getTranslationWithFallback('orderPreview.amountDue', 'Amount Due')}:</span>
                         <span className="font-semibold text-red-600">{formatCurrency(summary.total)}</span>
                       </div>
                     </div>
@@ -314,7 +321,7 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
               <div className="bg-card rounded-lg border-2 border-border p-5 shadow-card h-full">
                 <div className="flex justify-between items-center mb-4 pb-2 border-b-2 border-border">
                   <h3 className="text-lg font-bold text-primary flex items-center">
-                    <span className="mr-2">📋</span> Order Summary
+                    <span className="mr-2">📋</span> {getTranslationWithFallback('orderPreview.orderSummary', 'Order Summary')}
                   </h3>
                   <div className="text-sm font-medium bg-accent/50 px-3 py-1 rounded-md">
                     Order ID: <span className="font-bold">{orderId}</span>
@@ -326,14 +333,14 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                   <div>
                     <h4 className="text-base font-semibold mb-3 flex items-center">
                       <List className="mr-2 h-4 w-4 text-primary" />
-                      Selected Menu Items <span className="ml-2 text-xs text-muted-foreground">({selectedItems.length} items)</span>
+                      {getTranslationWithFallback('orderPreview.selectedMenuItems', 'Selected Menu Items')} <span className="ml-2 text-xs text-muted-foreground">({selectedItems.length} {getTranslationWithFallback('orderPreview.items', 'items')})</span>
                     </h4>
                     <div className="overflow-auto max-h-[250px] pr-2 scrollbar-thin border border-border rounded-md">
                       <table className="w-full">
                         <thead className="bg-muted sticky top-0 shadow-sm">
                           <tr>
-                            <th className="text-left py-2 px-3 text-xs font-semibold text-muted-foreground">Item</th>
-                            <th className="text-right py-2 px-3 text-xs font-semibold text-muted-foreground">Price</th>
+                            <th className="text-left py-2 px-3 text-xs font-semibold text-muted-foreground">{getTranslationWithFallback('orderPreview.item', 'Item')}</th>
+                            <th className="text-right py-2 px-3 text-xs font-semibold text-muted-foreground">{getTranslationWithFallback('orderPreview.price', 'Price')}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-border/50">
@@ -346,16 +353,16 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                                 )}
                                 <div className="text-xs text-muted-foreground mt-1">
                                   {item.type === 'veg' ? (
-                                    <span className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">Veg</span>
+                                    <span className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">{t('menuCategories.vegetarian')}</span>
                                   ) : (
-                                    <span className="bg-red-100 text-red-800 text-xs font-semibold px-2 py-0.5 rounded-full">Non-Veg</span>
+                                    <span className="bg-red-100 text-red-800 text-xs font-semibold px-2 py-0.5 rounded-full">{t('menuCategories.nonVegetarian')}</span>
                                   )}
                                 </div>
                               </td>
                               <td className="py-2 px-3 text-right">
                                 <div className="font-medium text-sm text-primary">{formatCurrency(item.price)}</div>
                                 <div className="text-xs text-muted-foreground mt-0.5">
-                                  × {customerData.guestCount} guests
+                                  × {customerData.guestCount} {getTranslationWithFallback('orderPreview.guests', 'guests')}
                                 </div>
                               </td>
                             </tr>
@@ -371,27 +378,27 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                     <div className="bg-accent/20 rounded-lg p-4 border border-border">
                       <h4 className="text-base font-semibold mb-3 pb-1 border-b border-border flex items-center">
                         <FileText className="mr-2 h-4 w-4 text-primary" />
-                        Invoice Summary
+                        {getTranslationWithFallback('orderPreview.invoiceSummary', 'Invoice Summary')}
                       </h4>
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground text-sm">Subtotal</span>
+                          <span className="text-muted-foreground text-sm">{getTranslationWithFallback('orderPreview.subtotal', 'Subtotal')}</span>
                           <span className="font-medium text-sm">{formatCurrency(summary.subtotal)}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground text-sm">Guest Count</span>
+                          <span className="text-muted-foreground text-sm">{getTranslationWithFallback('customerForm.guestCount', 'Guest Count')}</span>
                           <span className="font-medium text-sm">{customerData.guestCount}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground text-sm">Total Items</span>
+                          <span className="text-muted-foreground text-sm">{getTranslationWithFallback('orderPreview.totalItems', 'Total Items')}</span>
                           <span className="font-medium text-sm">{selectedItems.length}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground text-sm">GST (18%)</span>
+                          <span className="text-muted-foreground text-sm">{getTranslationWithFallback('orderPreview.gst', 'GST')}</span>
                           <span className="font-medium text-sm">{formatCurrency(summary.gst)}</span>
                         </div>
                         <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
-                          <span className="font-bold text-sm">Total</span>
+                          <span className="font-bold text-sm">{getTranslationWithFallback('orderPreview.total', 'Total')}</span>
                           <span className="font-bold text-base text-primary">{formatCurrency(summary.total)}</span>
                         </div>
                       </div>
@@ -401,7 +408,7 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                     <div className="bg-accent/20 rounded-lg p-4 border border-border">
                       <h4 className="text-base font-semibold mb-3 pb-1 border-b border-border flex items-center">
                         <DollarSign className="mr-2 h-4 w-4 text-primary" />
-                        Payment Status
+                        {getTranslationWithFallback('orderPreview.paymentStatus', 'Payment Status')}
                       </h4>
                       
                       {saveOrderMutation.isSuccess && saveOrderMutation.data ? (
@@ -475,7 +482,7 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                   className="flex items-center gap-2 w-full mb-4 lg:mb-0"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Back to Menu Selection
+                  {getTranslationWithFallback('menuSelection.backToMenu', 'Back to Menu')}
                 </Button>
               </div>
               
@@ -486,7 +493,7 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                   <div className="bg-muted/30 rounded-lg p-4 border border-border">
                     <h4 className="text-sm font-semibold text-primary mb-3 pb-1 border-b border-border flex items-center">
                       <List className="w-4 h-4 mr-2" />
-                      Menu Options
+                      {getTranslationWithFallback('orderPreview.menuOptions', 'Menu Options')}
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       <Button
@@ -496,7 +503,7 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                         size="sm"
                       >
                         <PrinterCheck className="w-3 h-3" />
-                        Print Menu
+                        {getTranslationWithFallback('orderPreview.printMenu', 'Print Menu')}
                       </Button>
                       <Button
                         variant="outline"
@@ -505,7 +512,7 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                         size="sm"
                       >
                         <List className="w-3 h-3" />
-                        Download List
+                        {getTranslationWithFallback('orderPreview.downloadList', 'Download List')}
                       </Button>
                     </div>
                   </div>
@@ -514,7 +521,7 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                   <div className="bg-muted/30 rounded-lg p-4 border border-border">
                     <h4 className="text-sm font-semibold text-primary mb-3 pb-1 border-b border-border flex items-center">
                       <FileBarChart className="w-4 h-4 mr-2" />
-                      Invoice Options
+                      {t('orderPreview.invoiceOptions')}
                     </h4>
                     <div className="grid grid-cols-2 gap-2">
                       <Button
@@ -568,12 +575,12 @@ export default function OrderPreview({ customerData, selectedItems, onBack, onCo
                     {saveOrderMutation.isPending ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Saving Order...
+                        {t('orderPreview.savingOrder')}
                       </>
                     ) : (
                       <>
                         <Save className="w-5 h-5" />
-                        Save Order
+                        {t('orderPreview.saveOrder')}
                       </>
                     )}
                   </Button>

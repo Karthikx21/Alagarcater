@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { UserPlus, List, Menu, X, User, Utensils, ClipboardCheck, ListOrdered, Settings, LogOut } from "lucide-react";
+import { Menu, X, User, Utensils, ClipboardCheck, ListOrdered, Settings, LogOut } from "lucide-react";
 import CustomerForm from "@/components/customer-form";
 import MenuSelection from "@/components/menu-selection";
 import OrderPreview from "@/components/order-preview";
@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 type Section = 'customer-form' | 'menu-selection' | 'order-preview' | 'orders-list' | 'admin-menu';
 
 export default function Home() {
+  const { t } = useTranslation();
   const [currentSection, setCurrentSection] = useState<Section>('customer-form');
   const [customerData, setCustomerData] = useState<CustomerData | null>(null);
   const [selectedItems, setSelectedItems] = useState<SelectedMenuItem[]>([]);
@@ -83,7 +84,6 @@ export default function Home() {
   };
 
   const { user, logout } = useAuth();
-  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col">

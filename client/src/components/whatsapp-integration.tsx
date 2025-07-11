@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ interface WhatsAppIntegrationProps {
 }
 
 export default function WhatsAppIntegration({ order, customer }: WhatsAppIntegrationProps) {
+  const { t } = useTranslation();
   const [messageType, setMessageType] = useState<string>("confirmation");
   const [customMessage, setCustomMessage] = useState("");
   const [sending, setSending] = useState(false);
@@ -127,9 +129,10 @@ Thank you for choosing Algar Catering!
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      alert("Message copied to clipboard!");
+      alert(t('whatsapp.messageCopied'));
     } catch (error) {
       console.error("Failed to copy text:", error);
+      alert(t('whatsapp.failedToCopy'));
     }
   };
 
@@ -168,31 +171,31 @@ Thank you for choosing Algar Catering!
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageCircle size={20} />
-          WhatsApp Communication
+          {t('whatsapp.title')}
         </CardTitle>
         <CardDescription>
-          Send order updates and confirmations to the customer via WhatsApp
+          {t('whatsapp.description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="messageType">Message Type</Label>
+            <Label htmlFor="messageType">{t('whatsapp.messageType')}</Label>
             <Select value={messageType} onValueChange={setMessageType}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder={t('whatsapp.messageTypeSelect')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="confirmation">Order Confirmation</SelectItem>
-                <SelectItem value="reminder">Event Reminder</SelectItem>
-                <SelectItem value="ready">Order Ready</SelectItem>
-                <SelectItem value="delivered">Order Delivered</SelectItem>
-                <SelectItem value="custom">Custom Message</SelectItem>
+                <SelectItem value="confirmation">{t('whatsapp.confirmation')}</SelectItem>
+                <SelectItem value="reminder">{t('whatsapp.reminder')}</SelectItem>
+                <SelectItem value="ready">{t('whatsapp.ready')}</SelectItem>
+                <SelectItem value="delivered">{t('whatsapp.delivered')}</SelectItem>
+                <SelectItem value="custom">{t('whatsapp.custom')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="customerMobile">Customer Mobile</Label>
+            <Label htmlFor="customerMobile">{t('whatsapp.customerPhone')}</Label>
             <Input
               id="customerMobile"
               value={customer.mobile}
@@ -204,19 +207,19 @@ Thank you for choosing Algar Catering!
 
         {messageType === "custom" && (
           <div>
-            <Label htmlFor="customMessage">Custom Message</Label>
+            <Label htmlFor="customMessage">{t('whatsapp.custom')}</Label>
             <Textarea
               id="customMessage"
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
-              placeholder="Enter your custom message..."
+              placeholder={t('whatsapp.customMessagePlaceholder')}
               rows={6}
             />
           </div>
         )}
 
         <div>
-          <Label htmlFor="messagePreview">Message Preview</Label>
+          <Label htmlFor="messagePreview">{t('whatsapp.previewMessage')}</Label>
           <Textarea
             id="messagePreview"
             value={message}
@@ -233,7 +236,7 @@ Thank you for choosing Algar Catering!
             className="flex-1"
           >
             <Send size={16} className="mr-2" />
-            {sending ? 'Sending...' : 'Send via WhatsApp'}
+            {sending ? t('whatsapp.sending') : t('whatsapp.sendMessage')}
           </Button>
           <Button 
             variant="outline" 
@@ -241,19 +244,15 @@ Thank you for choosing Algar Catering!
             className="flex-1"
           >
             <Copy size={16} className="mr-2" />
-            Copy Message
+            {t('whatsapp.copyToClipboard')}
           </Button>
           <Button 
             variant="outline" 
             onClick={openWhatsApp}
           >
             <ExternalLink size={16} className="mr-2" />
-            Open WhatsApp
+            {t('whatsapp.openWhatsApp')}
           </Button>
-        </div>
-
-        <div className="text-sm text-muted-foreground">
-          <p>💡 <strong>Tip:</strong> You can copy the message and paste it manually in WhatsApp, or click &quot;Send via WhatsApp&quot; to open WhatsApp Web with the pre-filled message.</p>
         </div>
       </CardContent>
     </Card>

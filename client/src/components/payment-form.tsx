@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -141,33 +141,52 @@ export default function PaymentForm({ orderId, orderTotal, amountDue, onSuccess 
       <CardContent className="px-0 pb-0">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="text-sm">{t('ordersList.paymentAmount') || 'Payment Amount'}</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  className="pl-8"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required
-                />
+              <div className="space-y-2">
+                <Label htmlFor="amount" className="text-sm font-medium">
+                  {t('ordersList.paymentAmount') || 'Payment Amount'}
+                </Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₹</span>
+                  <Input
+                    id="amount"
+                    name="amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="999999"
+                    placeholder="0.00"
+                    className="pl-8 h-11"
+                    value={amount}
+                    onChange={(e) => {
+                      console.log('Amount input changed:', e.target.value);
+                      setAmount(e.target.value);
+                    }}
+                    onFocus={() => console.log('Amount input focused')}
+                    onBlur={() => console.log('Amount input blurred')}
+                    required
+                    autoComplete="off"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground flex flex-wrap gap-x-2">
+                  <span>{t('ordersList.total') || 'Total'}: {formatCurrency(parseFloat(orderTotal))}</span>
+                  <span>|</span>
+                  <span>{t('ordersList.due') || 'Due'}: {formatCurrency(parseFloat(amountDue))}</span>
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground flex flex-wrap gap-x-2">
-                <span>{t('ordersList.total') || 'Total'}: {formatCurrency(parseFloat(orderTotal))}</span>
-                <span>|</span>
-                <span>{t('ordersList.due') || 'Due'}: {formatCurrency(parseFloat(amountDue))}</span>
-              </p>
-            </div>
             
             <div className="space-y-2">
-              <Label htmlFor="paymentMethod" className="text-sm">{t('ordersList.paymentMethod') || 'Payment Method'}</Label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod} required>
-                <SelectTrigger id="paymentMethod">
+              <Label htmlFor="paymentMethod" className="text-sm font-medium">
+                {t('ordersList.paymentMethod') || 'Payment Method'}
+              </Label>
+              <Select 
+                value={paymentMethod} 
+                onValueChange={(value) => {
+                  console.log('Payment method changed:', value);
+                  setPaymentMethod(value);
+                }} 
+                required
+              >
+                <SelectTrigger id="paymentMethod" className="h-11">
                   <SelectValue placeholder={t('ordersList.selectPaymentMethod') || "Select payment method"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -184,35 +203,48 @@ export default function PaymentForm({ orderId, orderTotal, amountDue, onSuccess 
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="receiptNumber" className="text-sm">{t('ordersList.receiptNumber') || 'Receipt Number (Optional)'}</Label>
+              <Label htmlFor="receiptNumber" className="text-sm font-medium">
+                {t('ordersList.receiptNumber') || 'Receipt Number (Optional)'}
+              </Label>
               <Input
                 id="receiptNumber"
+                name="receiptNumber"
                 placeholder={t('ordersList.receiptPlaceholder') || "Receipt or transaction ID"}
+                className="h-11"
                 value={receiptNumber}
-                onChange={(e) => setReceiptNumber(e.target.value)}
+                onChange={(e) => {
+                  console.log('Receipt number changed:', e.target.value);
+                  setReceiptNumber(e.target.value);
+                }}
+                autoComplete="off"
               />
             </div>
             
             <div className="space-y-2">
-              <Label className="text-sm">{t('ordersList.paymentDate') || 'Payment Date'}</Label>
+              <Label className="text-sm font-medium">{t('ordersList.paymentDate') || 'Payment Date'}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
+                    type="button"
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full h-11 justify-start text-left font-normal",
                       !paymentDate && "text-muted-foreground"
                     )}
+                    onClick={() => console.log('Date picker clicked')}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {paymentDate ? format(paymentDate, "PPP") : <span>{t('ordersList.pickDate') || 'Pick a date'}</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
                     selected={paymentDate}
-                    onSelect={setPaymentDate}
+                    onSelect={(date) => {
+                      console.log('Date selected:', date);
+                      setPaymentDate(date);
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -221,13 +253,20 @@ export default function PaymentForm({ orderId, orderTotal, amountDue, onSuccess 
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-sm">{t('ordersList.notes') || 'Notes (Optional)'}</Label>
+            <Label htmlFor="notes" className="text-sm font-medium">
+              {t('ordersList.notes') || 'Notes (Optional)'}
+            </Label>
             <Textarea
               id="notes"
+              name="notes"
               placeholder={t('ordersList.notesPlaceholder') || "Add any additional payment details here"}
+              className="min-h-[80px]"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
+              onChange={(e) => {
+                console.log('Notes changed:', e.target.value);
+                setNotes(e.target.value);
+              }}
+              rows={3}
             />
           </div>
           

@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import { CustomerData } from "@/types";
 import { validateMobileNumber } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const customerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -25,6 +26,8 @@ interface CustomerFormProps {
 }
 
 export default function CustomerForm({ onNext, initialData }: CustomerFormProps) {
+  const { t } = useTranslation();
+  
   const form = useForm<CustomerData>({
     resolver: zodResolver(customerSchema),
     defaultValues: initialData || {
@@ -50,31 +53,31 @@ export default function CustomerForm({ onNext, initialData }: CustomerFormProps)
               <span className="text-white font-bold text-xl">1</span>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-foreground">Customer Details</h2>
-              <p className="text-muted-foreground mt-1">Please fill in the customer information</p>
+              <h2 className="text-3xl font-bold text-foreground">{t('customerForm.title')}</h2>
+              <p className="text-muted-foreground mt-1">{t('customerForm.subtitle')}</p>
             </div>
           </div>
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-base">Customer Name</Label>
+                <Label htmlFor="name" className="text-base">{t('customerForm.customerName')}</Label>
                 <Input
                   id="name"
                   {...form.register("name")}
-                  placeholder="Enter customer name"
+                  placeholder={t('customerForm.customerNamePlaceholder')}
                 />
                 {form.formState.errors.name && (
-                  <p className="text-sm font-medium text-destructive mt-1">{form.formState.errors.name.message}</p>
+                  <p className="text-sm font-medium text-destructive mt-1">{t('customerForm.validation.nameRequired')}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="mobile" className="text-base">Mobile Number</Label>
+                <Label htmlFor="mobile" className="text-base">{t('customerForm.mobileNumber')}</Label>
                 <Input
                   id="mobile"
                   {...form.register("mobile")}
-                  placeholder="Enter 10-digit mobile number"
+                  placeholder={t('customerForm.mobileNumberPlaceholder')}
                   maxLength={10}
                   onKeyPress={(e) => {
                     const isNumber = /[0-9]/.test(e.key);
@@ -89,70 +92,71 @@ export default function CustomerForm({ onNext, initialData }: CustomerFormProps)
                   }}
                 />
                 {form.formState.errors.mobile && (
-                  <p className="text-sm font-medium text-destructive mt-1">{form.formState.errors.mobile.message}</p>
+                  <p className="text-sm font-medium text-destructive mt-1">{t('customerForm.validation.mobileInvalid')}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-base">Address</Label>
+                <Label htmlFor="address" className="text-base">{t('customerForm.address')}</Label>
                 <Textarea
                   id="address"
                   {...form.register("address")}
-                  placeholder="Enter complete address"
-                  rows={3}
-                  className="resize-none"
+                  placeholder={t('customerForm.addressPlaceholder')}
+                  className="min-h-[120px] resize-none"
                 />
                 {form.formState.errors.address && (
-                  <p className="text-sm font-medium text-destructive mt-1">{form.formState.errors.address.message}</p>
+                  <p className="text-sm font-medium text-destructive mt-1">{t('customerForm.validation.addressMinLength')}</p>
                 )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes" className="text-base">Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  {...form.register("notes")}
-                  placeholder="Special requirements, allergies, preferences..."
-                  rows={2}
-                  className="resize-none"
-                />
               </div>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="guestCount" className="text-base">Guest Count</Label>
+                <Label htmlFor="guestCount" className="text-base">{t('customerForm.guestCount')}</Label>
                 <Input
                   id="guestCount"
                   type="number"
-                  {...form.register("guestCount", { valueAsNumber: true })}
-                  placeholder="Number of guests"
                   min="1"
+                  {...form.register("guestCount", { valueAsNumber: true })}
+                  placeholder={t('customerForm.guestCountPlaceholder')}
                 />
                 {form.formState.errors.guestCount && (
-                  <p className="text-sm font-medium text-destructive mt-1">{form.formState.errors.guestCount.message}</p>
+                  <p className="text-sm font-medium text-destructive mt-1">{t('customerForm.validation.guestCountMin')}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="eventDate" className="text-base">Event Date & Time</Label>
+                <Label htmlFor="eventDate" className="text-base">{t('customerForm.eventDate')}</Label>
                 <Input
                   id="eventDate"
-                  type="datetime-local"
+                  type="date"
                   {...form.register("eventDate")}
-                  min={new Date().toISOString().slice(0, 16)}
+                  min={new Date().toISOString().split('T')[0]}
                 />
                 {form.formState.errors.eventDate && (
-                  <p className="text-sm font-medium text-destructive mt-1">{form.formState.errors.eventDate.message}</p>
+                  <p className="text-sm font-medium text-destructive mt-1">{t('customerForm.validation.eventDateRequired')}</p>
                 )}
               </div>
 
-              <div className="pt-4">
-                <Button type="submit" className="w-full" size="lg">
-                  Continue to Menu Selection
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="text-base">{t('customerForm.notes')} <span className="text-xs text-muted-foreground">({t('common.optional')})</span></Label>
+                <Textarea
+                  id="notes"
+                  {...form.register("notes")}
+                  placeholder={t('customerForm.notesPlaceholder')}
+                  className="min-h-[120px] resize-none"
+                />
               </div>
+            </div>
+
+            <div className="md:col-span-2 flex justify-end pt-6">
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary text-white font-semibold px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center"
+              >
+                {t('customerForm.nextToMenu')} <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
             </div>
           </form>
         </CardContent>

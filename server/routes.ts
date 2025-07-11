@@ -213,9 +213,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         console.error("Validation error details:", error.errors);
         res.status(400).json({ message: "Validation error", errors: error.errors });
+      } else if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        console.error("Unique constraint violation:", error);
+        res.status(409).json({ message: "Order ID already exists. Please try again." });
       } else {
         console.error("Unexpected error:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ 
+          message: "Internal server error", 
+          details: error instanceof Error ? error.message : String(error) 
+        });
       }
     }
   });

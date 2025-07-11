@@ -120,28 +120,55 @@ export class PrismaStorage implements IStorage {
 
   // Order operations
   async createOrder(order: InsertOrder): Promise<PrismaOrder> {
-    // Generate unique orderId (e.g., ACS2025001)
-    const count = await prisma.order.count();
-    const orderId = `ACS${new Date().getFullYear()}${String(count + 1).padStart(3, '0')}`;
+    // Use a transaction to ensure atomic orderId generation and order creation
+    return await prisma.$transaction(async (tx) => {
+      // Generate unique orderId (e.g., ACS2025001) by finding the highest numeric part
+      const currentYear = new Date().getFullYear();
+      const orderIdPrefix = `ACS${currentYear}`;
+      
+      // Find all orders for the current year and extract the highest number
+      const ordersThisYear = await tx.order.findMany({
+        where: {
+          orderId: {
+            startsWith: orderIdPrefix
+          }
+        },
+        select: { orderId: true },
+      });
+      
+      let maxNumber = 0;
+      ordersThisYear.forEach(order => {
+        const match = order.orderId.match(/ACS(\d{4})(\d{3})/);
+        if (match && match[1] === currentYear.toString()) {
+          const num = parseInt(match[2], 10);
+          if (num > maxNumber) {
+            maxNumber = num;
+          }
+        }
+      });
+      
+      const nextNumber = maxNumber + 1;
+      const orderId = `${orderIdPrefix}${String(nextNumber).padStart(3, '0')}`;
 
-    const orderCreateInput: Prisma.OrderCreateInput = {
-      orderId,
-      customer: { connect: { id: order.customerId } },
-      guestCount: order.guestCount,
-      eventDate: order.eventDate,
-      selectedItems: JSON.parse(JSON.stringify(order.selectedItems)),
-      subtotal: new Prisma.Decimal(order.subtotal),
-      serviceCharge: new Prisma.Decimal(order.serviceCharge),
-      gst: new Prisma.Decimal(order.gst),
-      total: new Prisma.Decimal(order.total),
-      status: order.status || "pending",
-      paymentStatus: order.paymentStatus || "due",
-      amountPaid: new Prisma.Decimal(order.amountPaid || "0"),
-      amountDue: new Prisma.Decimal(order.amountDue || "0"),
-    };
+      const orderCreateInput: Prisma.OrderCreateInput = {
+        orderId,
+        customer: { connect: { id: order.customerId } },
+        guestCount: order.guestCount,
+        eventDate: order.eventDate,
+        selectedItems: JSON.parse(JSON.stringify(order.selectedItems)),
+        subtotal: new Prisma.Decimal(order.subtotal),
+        serviceCharge: new Prisma.Decimal(order.serviceCharge),
+        gst: new Prisma.Decimal(order.gst),
+        total: new Prisma.Decimal(order.total),
+        status: order.status || "pending",
+        paymentStatus: order.paymentStatus || "due",
+        amountPaid: new Prisma.Decimal(order.amountPaid || "0"),
+        amountDue: new Prisma.Decimal(order.amountDue || "0"),
+      };
 
-    return await prisma.order.create({
-      data: orderCreateInput,
+      return await tx.order.create({
+        data: orderCreateInput,
+      });
     });
   }
   async getOrder(id: number): Promise<TransformedOrder | undefined> {

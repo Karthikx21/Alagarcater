@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Language = 'en' | 'ta';
 
@@ -15,7 +16,9 @@ interface LanguageProviderProps {
 }
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  // Try to get the language from localStorage, default to English
+  const { i18n } = useTranslation();
+  
+  // Initialize with i18n current language, default to English
   const [language, setLanguage] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       const savedLanguage = localStorage.getItem('preferredLanguage');
@@ -24,17 +27,36 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     return 'en';
   });
 
-  // Save language preference to localStorage when it changes
+  // Sync with i18n when language changes
   useEffect(() => {
+    if (i18n && i18n.language !== language) {
+      i18n.changeLanguage(language);
+    }
     localStorage.setItem('preferredLanguage', language);
-  }, [language]);
+  }, [language, i18n]);
+
+  // Initialize i18n language on mount
+  useEffect(() => {
+    if (i18n && i18n.language !== language) {
+      i18n.changeLanguage(language);
+    }
+  }, [i18n, language]);
+
+  const handleSetLanguage = (lang: Language) => {
+    setLanguage(lang);
+  };
 
   const toggleLanguage = () => {
-    setLanguage(prevLang => prevLang === 'en' ? 'ta' : 'en');
+    const newLang = language === 'en' ? 'ta' : 'en';
+    setLanguage(newLang);
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, toggleLanguage }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage: handleSetLanguage, 
+      toggleLanguage 
+    }}>
       {children}
     </LanguageContext.Provider>
   );

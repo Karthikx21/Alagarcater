@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ interface OrderWithCustomer extends Order {
 }
 
 export default function TodaysOrdersDashboard() {
+  const { t } = useTranslation();
   const [todaysOrders, setTodaysOrders] = useState<OrderWithCustomer[]>([]);
   const [tomorrowsOrders, setTomorrowsOrders] = useState<OrderWithCustomer[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<OrderWithCustomer[]>([]);
@@ -146,7 +148,7 @@ export default function TodaysOrdersDashboard() {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center">Loading dashboard...</div>
+          <div className="text-center">{t('dashboard.loadingDashboard')}</div>
         </CardContent>
       </Card>
     );
@@ -176,9 +178,9 @@ export default function TodaysOrdersDashboard() {
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">WhatsApp Communication</h2>
+          <h2 className="text-2xl font-bold">{t('dashboard.whatsappCommunication')}</h2>
           <Button variant="outline" onClick={() => setWhatsappOrder(null)}>
-            Back to Dashboard
+            {t('dashboard.backToDashboard')}
           </Button>
         </div>
         <WhatsAppIntegration 
@@ -193,10 +195,10 @@ export default function TodaysOrdersDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-primary">Operations Dashboard</h1>
+        <h1 className="text-3xl font-bold text-primary">{t('dashboard.title')}</h1>
         <Button onClick={fetchOrders} variant="outline">
           <RefreshCw size={16} className="mr-2" />
-          Refresh
+          {t('dashboard.refresh')}
         </Button>
       </div>
 
@@ -204,48 +206,48 @@ export default function TodaysOrdersDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Today&apos;s Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.todaysOrders')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{todayCounts.total}</div>
             <p className="text-xs text-muted-foreground">
-              ₹{todayRevenue.toFixed(2)} revenue
+              ₹{todayRevenue.toFixed(2)} {t('dashboard.revenue')}
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Tomorrow&apos;s Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.tomorrowsOrders')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{tomorrowCounts.total}</div>
             <p className="text-xs text-muted-foreground">
-              ₹{tomorrowRevenue.toFixed(2)} revenue
+              ₹{tomorrowRevenue.toFixed(2)} {t('dashboard.revenue')}
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Ready for Delivery</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.readyForDelivery')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{todayCounts.ready}</div>
             <p className="text-xs text-muted-foreground">
-              Orders prepared
+              {t('dashboard.ordersPrepared')}
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">In Preparation</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('dashboard.inPreparation')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{todayCounts.preparing}</div>
             <p className="text-xs text-muted-foreground">
-              Orders being prepared
+              {t('dashboard.ordersBeingPrepared')}
             </p>
           </CardContent>
         </Card>
@@ -254,45 +256,45 @@ export default function TodaysOrdersDashboard() {
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <CardTitle>Orders Management</CardTitle>
-          <CardDescription>View and manage your catering orders</CardDescription>
+          <CardTitle>{t('dashboard.ordersManagement')}</CardTitle>
+          <CardDescription>{t('dashboard.ordersManagementDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
             <div className="flex-1">
               <Input
-                placeholder="Search by customer name, mobile, or order ID..."
+                placeholder={t('dashboard.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder={t('dashboard.filterByStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="new">New</SelectItem>
-                <SelectItem value="confirmed">Confirmed</SelectItem>
-                <SelectItem value="in_preparation">In Preparation</SelectItem>
-                <SelectItem value="ready">Ready</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t('dashboard.allStatus')}</SelectItem>
+                <SelectItem value="new">{t('dashboard.new')}</SelectItem>
+                <SelectItem value="confirmed">{t('dashboard.confirmed')}</SelectItem>
+                <SelectItem value="in_preparation">{t('dashboard.inPreparationStatus')}</SelectItem>
+                <SelectItem value="ready">{t('dashboard.ready')}</SelectItem>
+                <SelectItem value="delivered">{t('dashboard.delivered')}</SelectItem>
+                <SelectItem value="cancelled">{t('dashboard.cancelled')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="today">Today ({todayCounts.total})</TabsTrigger>
-              <TabsTrigger value="tomorrow">Tomorrow ({tomorrowCounts.total})</TabsTrigger>
+              <TabsTrigger value="today">{t('dashboard.today')} ({todayCounts.total})</TabsTrigger>
+              <TabsTrigger value="tomorrow">{t('dashboard.tomorrow')} ({tomorrowCounts.total})</TabsTrigger>
             </TabsList>
             
             <TabsContent value="today" className="mt-4">
               <div className="space-y-4">
                 {filteredOrders.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
-                    No orders found for today
+                    {t('dashboard.noOrdersFound')}
                   </div>
                 ) : (
                   filteredOrders.map(order => (
@@ -310,7 +312,7 @@ export default function TodaysOrdersDashboard() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <Users size={14} />
-                                {order.customer.name} ({order.guestCount} guests)
+                                {order.customer.name} ({order.guestCount} {t('dashboard.guests')})
                               </div>
                               <div className="flex items-center gap-1">
                                 <Phone size={14} />
@@ -322,12 +324,12 @@ export default function TodaysOrdersDashboard() {
                               </div>
                               <div className="flex items-center gap-1">
                                 <MapPin size={14} />
-                                {order.customer.address || 'Address not provided'}
+                                {order.customer.address || t('dashboard.addressNotProvided')}
                               </div>
                             </div>
                             
                             <div className="mt-2">
-                              <span className="font-semibold">Total: ₹{order.total}</span>
+                              <span className="font-semibold">{t('common.total')}: ₹{order.total}</span>
                               <span className="text-sm text-muted-foreground ml-2">
                                 ({order.paymentStatus})
                               </span>
@@ -343,12 +345,12 @@ export default function TodaysOrdersDashboard() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="new">New</SelectItem>
-                                <SelectItem value="confirmed">Confirmed</SelectItem>
-                                <SelectItem value="in_preparation">In Preparation</SelectItem>
-                                <SelectItem value="ready">Ready</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                                <SelectItem value="new">{t('dashboard.new')}</SelectItem>
+                                <SelectItem value="confirmed">{t('dashboard.confirmed')}</SelectItem>
+                                <SelectItem value="in_preparation">{t('dashboard.inPreparationStatus')}</SelectItem>
+                                <SelectItem value="ready">{t('dashboard.ready')}</SelectItem>
+                                <SelectItem value="delivered">{t('dashboard.delivered')}</SelectItem>
+                                <SelectItem value="cancelled">{t('dashboard.cancelled')}</SelectItem>
                               </SelectContent>
                             </Select>
                             
@@ -381,7 +383,7 @@ export default function TodaysOrdersDashboard() {
               <div className="space-y-4">
                 {filteredOrders.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
-                    No orders found for tomorrow
+                    {t('dashboard.noOrdersFound')}
                   </div>
                 ) : (
                   filteredOrders.map(order => (
@@ -399,7 +401,7 @@ export default function TodaysOrdersDashboard() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <Users size={14} />
-                                {order.customer.name} ({order.guestCount} guests)
+                                {order.customer.name} ({order.guestCount} {t('dashboard.guests')})
                               </div>
                               <div className="flex items-center gap-1">
                                 <Phone size={14} />
@@ -411,12 +413,12 @@ export default function TodaysOrdersDashboard() {
                               </div>
                               <div className="flex items-center gap-1">
                                 <MapPin size={14} />
-                                {order.customer.address || 'Address not provided'}
+                                {order.customer.address || t('dashboard.addressNotProvided')}
                               </div>
                             </div>
                             
                             <div className="mt-2">
-                              <span className="font-semibold">Total: ₹{order.total}</span>
+                              <span className="font-semibold">{t('common.total')}: ₹{order.total}</span>
                               <span className="text-sm text-muted-foreground ml-2">
                                 ({order.paymentStatus})
                               </span>
@@ -432,12 +434,12 @@ export default function TodaysOrdersDashboard() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="new">New</SelectItem>
-                                <SelectItem value="confirmed">Confirmed</SelectItem>
-                                <SelectItem value="in_preparation">In Preparation</SelectItem>
-                                <SelectItem value="ready">Ready</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                                <SelectItem value="new">{t('dashboard.new')}</SelectItem>
+                                <SelectItem value="confirmed">{t('dashboard.confirmed')}</SelectItem>
+                                <SelectItem value="in_preparation">{t('dashboard.inPreparationStatus')}</SelectItem>
+                                <SelectItem value="ready">{t('dashboard.ready')}</SelectItem>
+                                <SelectItem value="delivered">{t('dashboard.delivered')}</SelectItem>
+                                <SelectItem value="cancelled">{t('dashboard.cancelled')}</SelectItem>
                               </SelectContent>
                             </Select>
                             
